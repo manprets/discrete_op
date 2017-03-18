@@ -86,6 +86,16 @@ def print_T(T):
         print row_str#T[row][col]
     print '\n'
 
+def greedy_in_order(items, taken, capacity):
+    value = 0
+    weight = 0
+    for item in items:
+        if weight + item.weight <= capacity:
+            taken[item.index] = 1
+            value += item.value
+            weight += item.weight
+    return value, taken
+        
 def solve_it(input_data):
     # Modify this code to run your optimization algorithm
 
@@ -110,20 +120,28 @@ def solve_it(input_data):
     value = 0
     weight = 0
     taken = [0]*len(items)
-    T = np.zeros((item_count,capacity+1), dtype=int)
     
-    populate_T_arr(T,items,capacity)
-    #print_T(T)
+    items_times_capacity=item_count*(capacity+1)
+    print "items_times_capacity: ", items_times_capacity
     
-    taken = get_chosen_items(T,items)
-    #print_chosen(taken)
-    
-    for idx in range(item_count):
-        if taken[idx]==1:
-            item=items[idx]
-            value += item.value
-            weight += item.weight
-    
+    if (items_times_capacity<1000000000):
+        T = np.zeros((item_count,capacity+1), dtype=int)
+        
+        populate_T_arr(T,items,capacity)
+        #print_T(T)
+        
+        taken = get_chosen_items(T,items)
+        #print_chosen(taken)
+        
+        for idx in range(item_count):
+            if taken[idx]==1:
+                item=items[idx]
+                value += item.value
+                weight += item.weight
+    else:
+        #pick the naive solution provided
+        value, taken = greedy_in_order(items, taken, capacity)
+   
     # prepare the solution in the specified output format
     output_data = str(value) + ' ' + str(0) + '\n'
     output_data += ' '.join(map(str, taken))
