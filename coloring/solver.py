@@ -44,17 +44,6 @@ def print_adj_mat(adj_mat):
     #        print adj_mat[row][col]
     #        row += str(adj_mat[row][col]) + '\t'
     #    print row
-    print 'sorted adj_mat:'
-    aa = [0]*len(adj_mat[0])
-    for idx in range(len(aa)):
-        for jdx in range(len(aa)):
-            aa[idx] += adj_mat[idx][len(aa)-jdx-1]*2**jdx
-    
-    aa_idx =  sorted(range(len(aa)),key=lambda x:aa[x],reverse=False)
-    print adj_mat[aa_idx]
-    print '\n'
-
-
     
 def print_degree_list(degree_list):
     print "degree:", degree_list
@@ -145,14 +134,14 @@ def greedy_algo_degrees(node_count,adj_mat, idx_sorted_degree):
                 if adjacent[idx]==1:
                     adj_nodes.append(idx)
             
-            #print "node:",node, " adj_nodes:",adj_nodes
+            print "node:",node, " adj_nodes:",adj_nodes
             #get color of adjacent vertices
             colors_adj=[]
             for node_adj in adj_nodes:
                 if colors[node_adj]>=0:
                     colors_adj.append(colors[node_adj])
                 #adj_color = 
-            #print 'colors_adj:',colors_adj, ' color_space:', color_space
+            print 'colors_adj:',colors_adj, ' color_space:', color_space
             #get min and max colors assigned to adjacent vertices
 #            if len(colors_adj)>0:
 #                max_color_adj=max(colors_adj)
@@ -186,13 +175,13 @@ def greedy_algo_degrees(node_count,adj_mat, idx_sorted_degree):
             for color in colors_adj:
                 if color in color_space_copy:
                     color_space_copy.remove(color)
-            #print 'color_space_copy:',color_space_copy, ' color_space:', color_space
+            print 'color_space_copy:',color_space_copy, ' color_space:', color_space
             
             if len(color_space_copy)==0:
                 new_color=max(color_space)+1
             else:
                 new_color=min(color_space_copy)
-            #print 'new_color:', new_color
+            print 'new_color:', new_color
             
             #assign lowest numbered color not in use
             colors[node]=new_color
@@ -202,7 +191,104 @@ def greedy_algo_degrees(node_count,adj_mat, idx_sorted_degree):
             #os.system("pause")
     
     return colors
-   
+
+def get_next_node_degrees(colors,adj_mat):
+    node_count = len(colors)
+    
+    uncolored_degree_list = [0]*node_count
+    rnode = -1
+    max_degree = 0
+    for irow in range(node_count):
+        idegree = 0
+        if colors[irow] == -1:
+            for jcol in range(node_count):
+                if adj_mat[irow][jcol]==1 and colors[jcol] == -1:
+                    uncolored_degree_list[irow] +=1
+                    idegree += 1
+            if idegree>max_degree:
+                max_degree = idegree
+                rnode = irow
+        else:
+            uncolored_degree_list[irow] = 0
+        
+    print 'uncolored_degree_list: ', uncolored_degree_list
+    print 'colors: ', colors
+    print 'rnode: ', rnode
+    
+    #import numpy as np
+    if max(uncolored_degree_list)==0:
+        rnode = colors.index(-1)
+    #for node in range(node_count):
+    #    if colors[node]<>-1:
+    #        uncolored_degree_list[node]=0
+    #import numpy as np
+    #rnode = np.argmax(uncolored_degree_list)
+    print 'rnode: ', rnode
+    return rnode
+    
+def greedy_algo_degrees_new(node_count,adj_mat, idx_sorted_degree):
+    #0. Sort vertices in order of decreasing degree
+    #1. Color first vertex with first color.
+    #2. Do following for remaining V-1 vertices.
+    #     a) Remaining V-1 vertices are ordered by degree wrt to uncoloured neighbours
+    #     b) Consider the currently picked vertex and color it with the 
+    #        lowest numbered color that has not been used on any previously
+    #        colored vertices adjacent to it. If all previously used colors 
+    #        appear on vertices adjacent to v, assign a new color to it.
+    colors = [-1]*node_count
+    color_space=[]
+    #color_space_copy=[]
+    #print sorted(range(len(degree_list)),key=lambda x:degree_list[x])
+    
+    #for node in range(node_count):
+    for ndx in range(node_count):
+        node = get_next_node_degrees(colors,adj_mat)
+        #node = idx_sorted_degree[ndx]
+        if ndx==0:
+            colors[node]=0
+            color_space.append(0)
+            #color_space_copy.append(0)
+        else:
+            adjacent=adj_mat[node]
+            adj_nodes=[]
+            for idx in range(0,node_count):
+                if adjacent[idx]==1:
+                    adj_nodes.append(idx)
+            
+            print "node:",node, " adj_nodes:",adj_nodes
+            #get color of adjacent vertices
+            colors_adj=[]
+            for node_adj in adj_nodes:
+                if colors[node_adj]>=0:
+                    colors_adj.append(colors[node_adj])
+                #adj_color = 
+            print 'colors_adj:',colors_adj, ' color_space:', color_space
+            
+            #get min and max colors assigned to adjacent vertices
+            color_space_copy=[]
+            for cdx in color_space:
+                color_space_copy.append(cdx)
+            
+            for color in colors_adj:
+                if color in color_space_copy:
+                    color_space_copy.remove(color)
+            print 'color_space_copy:',color_space_copy, ' color_space:', color_space
+            
+            if len(color_space_copy)==0:
+                new_color=max(color_space)+1
+            else:
+                new_color=min(color_space_copy)
+            print 'new_color:', new_color
+            
+            #assign lowest numbered color not in use
+            colors[node]=new_color
+            if new_color not in color_space:
+                color_space.append(new_color)
+                #color_space_copy.append(new_color)
+            #os.system("pause")
+    
+    return colors
+    
 def get_next_node(non_adj_nodes, colored, adj_mat):
     #return node from non_adj_nodes
     #that is not in colored
@@ -236,7 +322,7 @@ def get_next_node(non_adj_nodes, colored, adj_mat):
                 if adjacent[color_node]==0:
                     #if adjacent
                     #next_node=node
-                    print 'next_node:',next_node
+                    #print 'next_node:',next_node
                     conn_arr.append(0)
                 else:
                     conn_arr.append(1)
@@ -250,7 +336,6 @@ def get_next_node(non_adj_nodes, colored, adj_mat):
     if next_node==None:
         #raw_input(['Here:'])
         print 'next_node=None'
-        pass
         #break
     print 'next_node:',next_node    
     return next_node
@@ -329,90 +414,102 @@ def greedy_algo_welsh_powell(node_count,adj_mat, idx_sorted_degree):
             new_color=max(colors)+1
             color_space.append(new_color)
             next_node=get_next_node_for_new_color(idx_sorted_degree, colors)
-            #print "node:",node,"next_node_new_color:",next_node
+            print "node:",node,"next_node_new_color:",next_node
             colors[next_node]=new_color
         #node=next_node
         print 'colors:',colors
         if (-1 not in colors):
             break
         
+        # is node connected to colored vertices
+#        if node in colored:
+#            continue
+#        else:
+#            connected_arr=[]
+#            for node_colored in colored:
+#                color_adjacent=adj_mat[node_colored]
+#                if adj_mat[node_colored][node]==0:
+#                    #node is not connected to colored vertex
+#                    connected_arr.append(0)
+#                else:
+#                    #node is connected to colored vertex
+#                    connected_arr.append(1)
+#            print 'connected_arr:',connected_arr
+        
+#    #print sorted(range(len(degree_list)),key=lambda x:degree_list[x])
+#    print '-1 index:',colors.index(-1)
+#    #for node in range(node_count):
+#    #for ndx in range(node_count):
+#    ndx=0
+#    color=0
+#    #while(-1 in colors):
+#    flag=True
+#    while(flag):
+#        node = idx_sorted_degree[ndx]
+#        if ndx==0:
+#            #color=0
+#            colors[node]=color
+#            color_space.append(color)
+#            
+#            adjacent=adj_mat[node]
+#            non_adj_nodes=[]
+#            for idx in range(0,node_count):
+#                if adjacent[idx]==0:
+#                    non_adj_nodes.append(idx)
+#                    colors[idx]=colors[node]
+#            print "node:",node, "non_adj_nodes:",non_adj_nodes
+#            print "colors:",colors
+#            print "color_space:",color_space
+#        #else:
+#        #find next ndx,node
+#        if (-1 in colors):
+#            ndx=colors.index(-1)
+#        else:
+#            flag=False
+#        #if ndx==2:
+#        #    break
+#        
+        
+        
+#        else:
+#            adjacent=adj_mat[node]
+#            adj_nodes=[]
+#            for idx in range(0,node_count):
+#                if adjacent[idx]==1:
+#                    adj_nodes.append(idx)
+#            
+#            print "node:",node, " adj_nodes:",adj_nodes
+#            #get color of adjacent vertices
+#            colors_adj=[]
+#            for node_adj in adj_nodes:
+#                if colors[node_adj]>=0:
+#                    colors_adj.append(colors[node_adj])
+#                #adj_color = 
+#            print 'colors_adj:',colors_adj, ' color_space:', color_space
+#            #get min and max colors assigned to adjacent vertices
+#            color_space_copy=[]
+#            for cdx in color_space:
+#                color_space_copy.append(cdx)
+#            
+#            for color in colors_adj:
+#                if color in color_space_copy:
+#                    color_space_copy.remove(color)
+#            print 'color_space_copy:',color_space_copy, ' color_space:', color_space
+#            
+#            if len(color_space_copy)==0:
+#                new_color=max(color_space)+1
+#            else:
+#                new_color=min(color_space_copy)
+#            print 'new_color:', new_color
+#            
+#            #assign lowest numbered color not in use
+#            colors[node]=new_color
+#            if new_color not in color_space:
+#                color_space.append(new_color)
+#                #color_space_copy.append(new_color)
+#            #os.system("pause")
+#    
     return colors
-
-def greedy_algo_welsh_powell_new(node_count,adj_mat, idx_sorted_degree):
-        #Welsh Powell Algorithm
-        #Find the degree of each vertex
-        #List the verices in order of descending valence
-        #valence i.e. degree(v(i))>=degree(v(i+1))
-        #Colour the first vertex in the list
-        #Go down the sorted list and color every vertex not connected to the colored vertices above, the same color then cross out all colored vertices in the list
-        #Repeat the process on the uncolored vertices with a new color-always working in descending order of degree until all vertices are colored
-        #Complexity of above algorithm = O(n)
-        #Step 1: All vertices are sorted according to the decreasing value of their degree in a list V.
-        #Step 2: Colors are ordered in a list C.
-        #Step 3: The first non colored vertex v in V is colored with the first available color in C.
-        #available means a color that was not previously used by the algorithm.
-        #Step 4: The remaining part of the ordered list V is traversed and the same color is allocated to
-        #every vertex for which no adjacent vertex has the same color.
-        #Step 5: Steps 3 and 4 are applied iteratively until all the vertices have been colored.
-        
-        colors = [-1]*node_count
-        color_space=[]
-        curr_color = 0
-        #remaining_nodes = list(xrange(node_count))
-        remaining_nodes = idx_sorted_degree
-        
-        def get_max_degree_node(remaining_nodes, adj_mat, colors):
-            for node in remaining_nodes:
-                if colors[node]==-1:
-                    remaining_nodes.remove(node)
-                    return node
-                    
-        def is_assignment_possible(node, curr_color, adj_mat,colors):
-            # look at node's neighbours
-            for nn in range(len(adj_mat[node])):
-                neighbour = adj_mat[node][nn]
-                if colors[nn]==curr_color and neighbour==1:
-                    return False
-            
-            return True
-            
-        def reorder_by_degree():
-            pass
-            
-        while (remaining_nodes):
-            # pick uncolored node with max degree
-            curr_node = get_max_degree_node(remaining_nodes, adj_mat, colors)
-            print 'curr_node:',curr_node, 'curr_color: ',curr_color
-            
-            # get a color -- which is curr_color
-            colors[curr_node] = curr_color
-            #print 'colors:',colors
-            
-            # assign current color to all possible nodes
-            #assign_curr_color_to_all(remaining_nodes, adj_mat, curr_color)
-            #import random
-            #random.shuffle(remaining_nodes)
-            print 'remaining_nodes: ',remaining_nodes
-            nodes_to_be_removed=[]
-
-            #for node in list(reversed(remaining_nodes)):
-            for node in remaining_nodes:
-                status = is_assignment_possible(node, curr_color, adj_mat,colors)
-                print 'node: ',node, 'curr_color: ',curr_color,'status: ',status
-                # color this node if it is not connected to the colored nodes 
-                if status:
-                    colors[node]=curr_color
-                    nodes_to_be_removed.append(node)
-            for to_remove in nodes_to_be_removed:
-                remaining_nodes.remove(to_remove)
-            
-            print 'colors:', colors
-            print 'remaining_nodes: ',remaining_nodes
-            # curr_color has been assigned to nodes where possible
-            # get_new_color
-            curr_color +=1
-                               
-        return colors
     
 def solve_it(input_data):
     # Modify this code to run your optimization algorithm
@@ -450,14 +547,16 @@ def solve_it(input_data):
     #print solution
     
     #solution = greedy_algo_degrees(node_count,adj_mat,idx_sorted_degree)
-    #print 'max_colors : ',max(solution)+1
+    #print 'max_colors: ', max(solution)+1
+    #print solution
+    
+    solution = greedy_algo_degrees_new(node_count,adj_mat,idx_sorted_degree)
+    print 'max_colors: ', max(solution)+1
+    #print solution
     
     #solution = greedy_algo_welsh_powell(node_count,adj_mat, idx_sorted_degree)
-    #print 'max_colors : ',max(solution)+1
+    #print 'max_colors: ', max(solution)+1
     
-    solution = greedy_algo_welsh_powell_new(node_count,adj_mat, idx_sorted_degree)
-    print 'max_colors : ',max(solution)+1
-
     # prepare the solution in the specified output format
     output_data = str(node_count) + ' ' + str(0) + '\n'
     output_data += ' '.join(map(str, solution))
