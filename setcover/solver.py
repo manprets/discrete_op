@@ -41,8 +41,8 @@ def get_trivial_solution(set_count,sets,item_count):
     return solution
 
 import operator
-def get_next_item_density_based(set_count, items_covered, solution, sets, remove_these_sets):
-    print 'set_count: {}, remove_these_sets: {}'.format(set_count,remove_these_sets)
+def get_next_item_density_based(set_count, item_count, items_covered, solution, sets, remove_these_sets):
+    #print 'set_count: {}, remove_these_sets: {}'.format(set_count,remove_these_sets)
     density_set = [-1]*set_count
     
     for idx_set in range(set_count):
@@ -64,6 +64,94 @@ def get_next_item_density_based(set_count, items_covered, solution, sets, remove
     print 'index: {}'.format(index)
     return index
     
+def get_next_item_density_n_freq_based(set_count, item_count, items_covered, solution, sets, remove_these_sets):
+        #print 'set_count: {}, remove_these_sets: {}'.format(set_count,remove_these_sets)
+        density_set = [-1]*set_count
+        
+#        for idx_set in range(set_count):
+#            if idx_set in remove_these_sets:
+#                pass
+#            else:
+#                set_i = sets[idx_set]
+#                set_cost = set_i.cost
+#                set_items = set_i.items
+#                new_item_len = len(set(set_items)-set(items_covered))
+#                
+#                #handle set_cost = 0 case
+#                density_set[idx_set]=new_item_len/float(set_cost)
+#        
+#        print 'density_set: {}'.format(density_set)
+#        print 'items_covered: {}'.format(items_covered)
+#        
+#        #index, value = max(enumerate(density_set), key=operator.itemgetter(1))
+#        #print 'index: {}'.format(index)
+#        #return index
+
+        #make a dictionary of item to count and item to list of sets
+        item_freq_dict = {}
+        item_to_set_dict = {}
+        
+        for idx_set in range(set_count):
+            if idx_set not in remove_these_sets:
+                set_i = sets[idx_set]
+                set_items = set_i.items
+                for item in set_items:
+                    if item not in items_covered:
+                        if item in item_freq_dict.keys():
+                            item_freq_dict[item] += 1
+                            item_to_set_dict[item].append(idx_set)
+                        else:
+                            item_freq_dict[item] = 1
+                            item_to_set_dict[item] = []
+                            item_to_set_dict[item].append(idx_set)
+        
+        print 'item_freq_dict: {}'.format(item_freq_dict)
+        print 'item_to_set_dict: {}'.format(item_to_set_dict)
+        
+        freq_to_item_dict = {}
+        for item in item_freq_dict.keys():
+            freq = item_freq_dict[item]
+            if freq in freq_to_item_dict.keys():
+                freq_to_item_dict[freq].append(item)
+            else:
+                freq_to_item_dict[freq] = []
+                freq_to_item_dict[freq].append(item)
+        
+        # if an item has freq of 1, pick that
+        min_freq = min(item_freq_dict.values())
+        #if 1 in item_freq_dict.values():
+        #mydict = {'george':16,'amber':19}
+        #index = item_freq_dict.keys()[item_freq_dict.values().index(min_freq)]
+        min_freq_items = freq_to_item_dict[min_freq]
+        
+        print 'min_freq:{},min_freq_items:{}'.format(min_freq,min_freq_items)
+        min_freq_items_to_set = set()
+        for min_freq_item in min_freq_items:
+            min_freq_items_to_set |= set(item_to_set_dict[min_freq_item])
+            
+        min_freq_items_to_set_list = list(min_freq_items_to_set)
+        
+        print 'min_freq_to_set_list:{}'.format(min_freq_items_to_set_list)
+
+        for idx_set in min_freq_items_to_set_list:
+            if idx_set in remove_these_sets:
+                pass
+            else:
+                set_i = sets[idx_set]
+                set_cost = set_i.cost
+                set_items = set_i.items
+                new_item_len = len(set(set_items)-set(items_covered))
+                
+                #handle set_cost = 0 case
+                density_set[idx_set]=new_item_len/float(set_cost)
+        
+        print 'density_set: {}'.format(density_set)
+        index, value = max(enumerate(density_set), key=operator.itemgetter(1))
+        
+        print 'index: {}'.format(index)
+        return index
+        
+
 def is_this_set_selectable(iset, sets, solution, items_covered):
     is_selectable = 0
     this_set = sets[iset]
@@ -104,8 +192,8 @@ def get_greedy_solution(set_count, sets, item_count):
     items_covered = []
     while len(items_covered) < item_count:
         
-        iset = get_next_item_density_based(set_count, items_covered, solution, sets, remove_these_sets)
-        
+        #iset = get_next_item_density_based(set_count, item_count, items_covered, solution, sets, remove_these_sets)
+        iset = get_next_item_density_n_freq_based(set_count, item_count, items_covered, solution, sets, remove_these_sets)
         # find if this set can be selected
         #select_this_set = is_this_set_selectable(iset, sets, solution, items_covered)
         #if select_this_set:
